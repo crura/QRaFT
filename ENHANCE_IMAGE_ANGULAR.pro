@@ -58,8 +58,8 @@ function ENHANCE_IMAGE_ANGULAR, IMG, XYCenter, R_mask, order=order
   img_diff_p  = (img_detr - rot(img_detr, +0.5,  1, x0, y0, /interp, /pivot))
   img_diff_n  = (img_detr - rot(img_detr,  -0.5,  1, x0, y0, /interp, /pivot))
 
- ; img_diff_abs = smooth(abs(img_diff_p-img_diff_n),[1,1]) ;
-  img_diff_abs = img_diff_p-img_diff_n
+  img_diff_abs = smooth(abs(img_diff_p-img_diff_n),[1,1]) ; unsiged 1st derivative
+ ; img_diff_abs = img_diff_p-img_diff_n   							   ; siged 1st derivative
 
   img_enh = img_diff_abs
 
@@ -70,8 +70,8 @@ function ENHANCE_IMAGE_ANGULAR, IMG, XYCenter, R_mask, order=order
     img_diff2_p  = (img_diff_abs- rot(img_diff_abs, +0.5,  1, x0, y0, /interp, /pivot))
     img_diff2_n  = (img_diff_abs- rot(img_diff_abs, -0.5,  1, x0, y0, /interp, /pivot))
 
-    ;img_diff2_abs = abs(img_diff2_p-img_diff2_n)
-    img_diff2_abs = img_diff2_p-img_diff2_n
+    img_diff2_abs = abs(img_diff2_p-img_diff2_n)   ; unsiged 2nd derivative
+    ; img_diff2_abs = img_diff2_p-img_diff2_n 		  ;  siged 2nd derivative
 
     img_enh = img_diff2_abs
 

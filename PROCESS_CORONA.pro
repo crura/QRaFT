@@ -137,7 +137,7 @@
 
 
   ; Edit this line to direct the code to the folder containing the parameter file "fname_par" (see below)
-  cd, "c:\Users\vadim\Documents\IDL\QRaFT"
+  ;cd, "c:\Users\vadim\Documents\IDL\QRaFT"
 
   if keyword_set(silent) then begin
   ;  Suppress error messages:
