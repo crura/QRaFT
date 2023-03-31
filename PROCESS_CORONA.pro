@@ -264,8 +264,11 @@
  	   !P.charsize=1.00
 
 
-   if keyword_set(save) then $
+   if keyword_set(save) then begin
+     q = readfits(fname, header)
      save, filename=fname +'.sav', FEATURES, IMG_orig, IMG_enh, IMG_p_enh, P, header, fname
+   endif
+
 
 
     !quiet = 0 & !except =1
