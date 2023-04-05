@@ -2,7 +2,7 @@ function run_QRaFT
 
   files = file_search('/Users/crura/Desktop/Research/idlroutines/STEREO_Data_Processing/Naty_Images/2012b/*.fits')
   for i=0, n_elements(files)-1 do begin
-  Features = process_corona(files[i], 'COR1', exten_no=1, thresh_k=2, /save, /old)
+  Features = process_corona(files[i], 'COR1', exten_no=1, thresh_k=2, /manual, /save, /old)
   endfor
   return, files
 End
