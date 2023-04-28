@@ -77,7 +77,8 @@ function ENHANCE_IMAGE_ANGULAR, IMG, XYCenter, R_mask, order=order
 
   endif
 
-  for x=0,Nx-1 do for y=0,Ny-1 do begin & r = sqrt((x-x0)^2.0+(y-y0)^2.0) & if r lt R_mask then img_enh[x,y]=0 & endfor
+  for x=0,Nx-1 do for y=0,Ny-1 do begin & r = sqrt((x-x0)^2.0+(y-y0)^2.0) & if r lt (R_mask+1) then img_enh[x,y]=0 & endfor
+  ;stop
 
   return, img_enh
 
