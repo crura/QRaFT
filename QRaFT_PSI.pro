@@ -1,5 +1,4 @@
 
-
 PRO script1
 
  features_cut = process_file("c:\Users\Vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\PSI_RHO_cut.fits", 'PSI')
@@ -111,19 +110,47 @@ function compare_angles,  f_corona,  f_By, f_Bz, f_By_LOS, f_Bz_LOS, isplot=ispl
   LOS_integrated_By_2D = readfits(f_By_LOS)
   LOS_integrated_Bz_2D = readfits(f_Bz_LOS)
 
-  By = congrid(By_2D,512,512)
-  Bz = congrid(Bz_2D,512,512)
-  By_LOS = congrid(LOS_integrated_By_2D,512,512)
-  Bz_LOS = congrid(LOS_integrated_Bz_2D,512,512)
 
-  features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P, manual=manual)  ; using  'PSI' rescales MLSO image to match the B-field arrays
+  if data_source eq 'MLSO2016' or data_source eq 'PSI_MLSO' then begin
+    By = congrid(By_2D,1024,1024)
+    Bz = congrid(Bz_2D,1024,1024)
+    By_LOS = congrid(LOS_integrated_By_2D,1024,1024)
+    Bz_LOS = congrid(LOS_integrated_Bz_2D,1024,1024)
+
+    By_rnd = randomu(seed1, 1024, 1024)
+    Bz_rnd = randomu(seed2, 1024, 1024)
+
+  endif else begin
+    By = congrid(By_2D,512,512)
+    Bz = congrid(Bz_2D,512,512)
+    By_LOS = congrid(LOS_integrated_By_2D,512,512)
+    Bz_LOS = congrid(LOS_integrated_Bz_2D,512,512)
+
+    By_rnd = randomu(seed1, 512, 512)
+    Bz_rnd = randomu(seed2, 512, 512)
+
+  endelse
+
+
+  ;By = congrid(By_2D,512,512)
+  ;Bz = congrid(Bz_2D,512,512)
+  ;By_LOS = congrid(LOS_integrated_By_2D,512,512)
+  ;Bz_LOS = congrid(LOS_integrated_Bz_2D,512,512)
+
+  if keyword_set(manual) then begin
+    features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P, manual=manual)  ; using  'PSI' rescales MLSO image to match the B-field arrays
+  endif else begin
+    features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P)  ; using  'PSI' rescales MLSO image to match the B-field arrays
+  endelse
+
+  ;features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P, /old, /silent)  ; using  'PSI' rescales MLSO image to match the B-field arrays
 
  err = features_vs_B(features, By, Bz, angle_err_avr = err_avr, angle_err_sd = err_sd, angle_err_signed=err_signed)
  err_LOS = features_vs_B(features, By_LOS, Bz_LOS, angle_err_avr = err_avr_LOS, angle_err_sd = err_sd_LOS, angle_err_signed=err_signed_LOS)
 
  ; random test:
- By_rnd = randomu(seed1, 512, 512)
- Bz_rnd = randomu(seed2, 512, 512)
+ ;By_rnd = randomu(seed1, 512, 512)
+ ;Bz_rnd = randomu(seed2, 512, 512)
  err_rnd = features_vs_B(features, By_rnd, Bz_rnd, angle_err_avr = err_avr_rnd, angle_err_signed=err_signed_rnd)
 
  Lmin = 1 ; 30 ; can be adjusted
@@ -210,44 +237,166 @@ if keyword_set(isplot) then begin
 End
 
 
-PRO script3,  err_arr_MLSO,  err_arr_LOS_MLSO, err_arr_FORWARD,  err_arr_LOS_FORWARD,  err_arr_rnd, L_MLSO, L_FORWARD
+PRO script3, input_directory,  output_directory,  err_arr_MLSO,  err_arr_LOS_MLSO, err_arr_FORWARD,  err_arr_LOS_FORWARD,  err_arr_rnd, L_MLSO, L_FORWARD, manual=manual
   ;dirs = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\MLSO_PSI_FORWARD_coaligned\slices_2\" + ['1\','2\','3\','4\','5\','6\']
-  dirs = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\MLSO_PSI_FORWARD_coaligned\slices_2\" + ['4\']
+  ;dirs = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\MLSO_PSI_FORWARD_coaligned\slices_2\" + ['4\']
+  dirs = input_directory
+  out_dir = output_directory
 
-  err_arr_MLSO = [0.0]
-  err_arr_LOS_MLSO = [0.0]
-  err_arr_FORWARD = [0.0]
-  err_arr_LOS_FORWARD = [0.0]
-  err_arr_rnd = [0.0]
-  L_MLSO = [0.0]
-  L_FORWARD = [0.0]
+  err_arr_MLSO_ = [0.0]
+  err_arr_LOS_MLSO_ = [0.0]
+  err_arr_FORWARD_ = [0.0]
+  err_arr_LOS_FORWARD_ = [0.0]
+  err_arr_rnd_ = [0.0]
+  L_MLSO_ = [0.0]
+  L_FORWARD_ = [0.0]
 
 
   for i=0, n_elements(dirs)-1 do begin
      print, dirs[i]
      f_MLSO = file_search(dirs[i]+'*kcor*')
-     f_pB = file_search(dirs[i]+'*_pB.fits')
-     f_ne = file_search(dirs[i]+'*_ne.fits')
-     f_ne_LOS = file_search(dirs[i]+'*_ne_LOS.fits')
+     f_pB = file_search(dirs[i]+'*KCor__PSI_pB.fits')
+     f_ne = file_search(dirs[i]+'*KCor__PSI_ne.fits')
+     f_ne_LOS = file_search(dirs[i]+'*KCor__PSI_ne_LOS.fits')
 
-     f_By =  file_search(dirs[i]+'*_By.fits')
-     f_Bz =  file_search(dirs[i]+'*_Bz.fits')
-     f_By_LOS =  file_search(dirs[i]+'*_By_LOS.fits')
-     f_Bz_LOS =  file_search(dirs[i]+'*_Bz_LOS.fits')
+     f_By =  file_search(dirs[i]+'*KCor__PSI_By.fits')
+     f_Bz =  file_search(dirs[i]+'*KCor__PSI_Bz.fits')
+     f_By_LOS =  file_search(dirs[i]+'*KCor__PSI_By_LOS.fits')
+     f_Bz_LOS =  file_search(dirs[i]+'*KCor__PSI_Bz_LOS.fits')
 
-      res_MLSO = compare_angles( f_MLSO,  f_By, f_Bz, f_By_LOS, f_Bz_LOS, /isplot)  ;hist_x=hist_x, hist_y=hist_y
-      res_FORWARD = compare_angles( f_pB,  f_By, f_Bz, f_By_LOS, f_Bz_LOS, /isplot)  ;hist_x=hist_x, hist_y=hist_y
+     for i=0, n_elements(f_pB)-1 do begin
+     f_err_sav = out_dir + repstr(file_basename(f_pb[i]), '_pB.fits', '.sav'); + '/'  + date_str+ '_' + detector_str +  '_errors.sav'
+
+      res_MLSO = compare_angles( f_MLSO[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='MLSO2016', thresh_k = 1.5)  ;hist_x=hist_x, hist_y=hist_y
+      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI_MLSO', thresh_k = 1.1647, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
 
 
 
-      err_arr_MLSO = [err_arr_MLSO, res_MLSO.err]
-      err_arr_LOS_MLSO = [err_arr_LOS_MLSO, res_MLSO.err_LOS]
-      err_arr_FORWARD = [err_arr_FORWARD, res_FORWARD.err]
-      err_arr_LOS_FORWARD = [err_arr_LOS_FORWARD, res_FORWARD.err_LOS]
-      err_arr_rnd = [err_arr_rnd,  res_MLSO.err_rnd]
+      ;err_arr_MLSO = [err_arr_MLSO, res_MLSO.err]
+      ;err_arr_LOS_MLSO = [err_arr_LOS_MLSO, res_MLSO.err_LOS]
+      ;err_arr_FORWARD = [err_arr_FORWARD, res_FORWARD.err]
+      ;err_arr_LOS_FORWARD = [err_arr_LOS_FORWARD, res_FORWARD.err_LOS]
+      ;err_arr_rnd = [err_arr_rnd,  res_MLSO.err_rnd]
+      err_arr_MLSO = res_MLSO.err
+      err_signed_arr_MLSO = res_MLSO.err_signed
 
-	  L_MLSO = [L_MLSO, res_MLSO.L]
-	  L_FORWARD = [L_FORWARD, res_FORWARD.L]
+      err_arr_LOS_MLSO = res_MLSO.err_LOS
+      err_signed_arr_LOS_MLSO = res_MLSO.err_signed_LOS
+
+      err_arr_FORWARD = res_FORWARD.err
+      err_signed_arr_FORWARD = res_FORWARD.err_signed
+
+      err_arr_LOS_FORWARD = res_FORWARD.err_LOS
+      err_signed_arr_LOS_FORWARD = res_FORWARD.err_signed_LOS
+
+      err_arr_rnd =res_MLSO.err_rnd
+      err_signed_arr_rnd =res_MLSO.err_signed_rnd
+
+      L_MLSO = res_MLSO.L
+      L_FORWARD = res_FORWARD.L
+
+	  save, err_arr_MLSO,  err_signed_arr_MLSO, err_arr_LOS_MLSO, err_signed_arr_LOS_MLSO, err_arr_FORWARD,  err_signed_arr_FORWARD, $
+	    err_arr_LOS_FORWARD,  err_signed_arr_LOS_FORWARD,  err_arr_rnd,  err_signed_arr_rnd,  L_MLSO, L_FORWARD, filename = f_err_sav
+
+	  err_arr_MLSO_ = [err_arr_MLSO_, err_arr_MLSO]
+	  err_arr_LOS_MLSO_ = [err_arr_LOS_MLSO_,err_arr_LOS_MLSO]
+	  err_arr_FORWARD_ = [err_arr_FORWARD_, err_arr_FORWARD]
+	  err_arr_LOS_FORWARD_ = [err_arr_LOS_FORWARD_, err_arr_LOS_FORWARD]
+	  err_arr_rnd_ = [err_arr_rnd_,  err_arr_rnd]
+	  L_MLSO_ = [L_MLSO_, L_MLSO]
+	  L_FORWARD_ = [L_FORWARD_, L_FORWARD]
+
+	  endfor
+
+
+  endfor
+
+  err_arr_MLSO = err_arr_MLSO[1:*]
+  err_arr_LOS_MLSO = err_arr_LOS_MLSO[1:*]
+  err_arr_FORWARD =err_arr_FORWARD[1:*]
+  err_arr_LOS_FORWARD =err_arr_LOS_FORWARD[1:*]
+  err_arr_rnd = err_arr_rnd[1:*]
+  L_MLSO = L_MLSO[1:*]
+  L_FORWARD = L_FORWARD[1:*]
+
+
+End
+
+
+PRO script3_optimize, input_directory,  output_directory, thresh_k_optimize,  err_arr_MLSO,  err_arr_LOS_MLSO, err_arr_FORWARD,  err_arr_LOS_FORWARD,  err_arr_rnd, L_MLSO, L_FORWARD, manual=manual
+  ;  Suppress error messages:
+  !quiet = 1 & !except = 0
+  ;dirs = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\MLSO_PSI_FORWARD_coaligned\slices_2\" + ['1\','2\','3\','4\','5\','6\']
+  ;dirs = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\MLSO_PSI_FORWARD_coaligned\slices_2\" + ['4\']
+  dirs = input_directory
+  out_dir = output_directory
+
+  err_arr_MLSO_ = [0.0]
+  err_arr_LOS_MLSO_ = [0.0]
+  err_arr_FORWARD_ = [0.0]
+  err_arr_LOS_FORWARD_ = [0.0]
+  err_arr_rnd_ = [0.0]
+  L_MLSO_ = [0.0]
+  L_FORWARD_ = [0.0]
+
+  print, 'thresh_k optimize: ', thresh_k_optimize
+
+
+  for i=0, n_elements(dirs)-1 do begin
+    print, dirs[i]
+    f_MLSO = file_search(dirs[i]+'*kcor*')
+    f_pB = file_search(dirs[i]+'*KCor__PSI_pB.fits')
+    f_ne = file_search(dirs[i]+'*KCor__PSI_ne.fits')
+    f_ne_LOS = file_search(dirs[i]+'*KCor__PSI_ne_LOS.fits')
+
+    f_By =  file_search(dirs[i]+'*KCor__PSI_By.fits')
+    f_Bz =  file_search(dirs[i]+'*KCor__PSI_Bz.fits')
+    f_By_LOS =  file_search(dirs[i]+'*KCor__PSI_By_LOS.fits')
+    f_Bz_LOS =  file_search(dirs[i]+'*KCor__PSI_Bz_LOS.fits')
+
+    for i=0, n_elements(f_pB)-1 do begin
+      f_err_sav = out_dir + repstr(file_basename(f_pb[i]), '_pB.fits', '.sav'); + '/'  + date_str+ '_' + detector_str +  '_errors.sav'
+
+      res_MLSO = compare_angles( f_MLSO[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='MLSO2016', thresh_k = thresh_k_optimize)  ;hist_x=hist_x, hist_y=hist_y
+      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI_MLSO', thresh_k = 1.1647)  ;hist_x=hist_x, hist_y=hist_y
+
+
+
+      ;err_arr_MLSO = [err_arr_MLSO, res_MLSO.err]
+      ;err_arr_LOS_MLSO = [err_arr_LOS_MLSO, res_MLSO.err_LOS]
+      ;err_arr_FORWARD = [err_arr_FORWARD, res_FORWARD.err]
+      ;err_arr_LOS_FORWARD = [err_arr_LOS_FORWARD, res_FORWARD.err_LOS]
+      ;err_arr_rnd = [err_arr_rnd,  res_MLSO.err_rnd]
+      err_arr_MLSO = res_MLSO.err
+      err_signed_arr_MLSO = res_MLSO.err_signed
+
+      err_arr_LOS_MLSO = res_MLSO.err_LOS
+      err_signed_arr_LOS_MLSO = res_MLSO.err_signed_LOS
+
+      err_arr_FORWARD = res_FORWARD.err
+      err_signed_arr_FORWARD = res_FORWARD.err_signed
+
+      err_arr_LOS_FORWARD = res_FORWARD.err_LOS
+      err_signed_arr_LOS_FORWARD = res_FORWARD.err_signed_LOS
+
+      err_arr_rnd =res_MLSO.err_rnd
+      err_signed_arr_rnd =res_MLSO.err_signed_rnd
+
+      L_MLSO = res_MLSO.L
+      L_FORWARD = res_FORWARD.L
+
+      save, err_arr_MLSO,  err_signed_arr_MLSO, err_arr_LOS_MLSO, err_signed_arr_LOS_MLSO, err_arr_FORWARD,  err_signed_arr_FORWARD, $
+        err_arr_LOS_FORWARD,  err_signed_arr_LOS_FORWARD,  err_arr_rnd,  err_signed_arr_rnd,  L_MLSO, L_FORWARD, filename = f_err_sav
+
+      err_arr_MLSO_ = [err_arr_MLSO_, err_arr_MLSO]
+      err_arr_LOS_MLSO_ = [err_arr_LOS_MLSO_,err_arr_LOS_MLSO]
+      err_arr_FORWARD_ = [err_arr_FORWARD_, err_arr_FORWARD]
+      err_arr_LOS_FORWARD_ = [err_arr_LOS_FORWARD_, err_arr_LOS_FORWARD]
+      err_arr_rnd_ = [err_arr_rnd_,  err_arr_rnd]
+      L_MLSO_ = [L_MLSO_, L_MLSO]
+      L_FORWARD_ = [L_FORWARD_, L_FORWARD]
+
+    endfor
 
 
   endfor
@@ -289,12 +438,13 @@ PRO script4, input_directory, output_directory,  err_arr_COR1,  err_arr_LOS_COR1
      f_By_LOS =  file_search(dirs[i]+'*COR1__PSI_By_LOS.fits')
      f_Bz_LOS =  file_search(dirs[i]+'*COR1__PSI_Bz_LOS.fits')
 
-	 date_str =  strmid(file_basename(f_pB),2,10)
-	 detector_str = strmid(file_basename(f_pB),14,19)
-     f_err_sav = out_dir + repstr(file_basename(f_pb), '_pB.fits', '.sav'); + '/'  + date_str+ '_' + detector_str +  '_errors.sav'
+	 for i=0, n_elements(f_pB)-1 do begin
+	 date_str =  strmid(file_basename(f_pB[i]),2,10)
+	 detector_str = strmid(file_basename(f_pB[i]),14,19)
+     f_err_sav = out_dir + repstr(file_basename(f_pb[i]), '_pB.fits', '.sav'); + '/'  + date_str+ '_' + detector_str +  '_errors.sav'
 
-      res_COR1 = compare_angles( f_COR1,  f_By, f_Bz, f_By_LOS, f_Bz_LOS, data_source='COR1', thresh_k = 1.5, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
-      res_FORWARD = compare_angles( f_pB,  f_By, f_Bz, f_By_LOS, f_Bz_LOS, data_source='COR1', thresh_k = 0.2, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
+      res_COR1 = compare_angles( f_COR1[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='COR1', thresh_k = 1.5, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
+      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI', thresh_k = 1.1647, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
 
       err_arr_COR1 = res_COR1.err
       err_signed_arr_COR1 = res_COR1.err_signed
@@ -324,6 +474,7 @@ PRO script4, input_directory, output_directory,  err_arr_COR1,  err_arr_LOS_COR1
       err_arr_rnd_ = [err_arr_rnd_,  err_arr_rnd]
 	  L_COR1_ = [L_COR1_, L_COR1]
 	  L_FORWARD_ = [L_FORWARD_, L_FORWARD]
+	  endfor
 
   endfor
 

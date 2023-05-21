@@ -158,6 +158,7 @@
    if data_source eq 'COR1_RAW' then fname_par = "COR1_parameters_raw.txt"	 ; STEREO COR1 images (no filters applied)
    if data_source eq 'PSI' 	then fname_par = "PSI_parameters.txt"             					;  density slices from PSI MAS simulation runs
    if data_source eq 'ECL1' 	then fname_par = "ECL1_parameters.txt"          		   ; Ground-nased eclipse images (TBD depending on image sourse)
+   if data_source eq 'PSI_MLSO' then fname_par = "PSI_MLSO_Parameters.txt"
 
    P = READ_PARAMETERS(fname_par)
 

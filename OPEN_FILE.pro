@@ -44,8 +44,10 @@ FUNCTION OPEN_FILE, fname,  P, exten_no=exten_no, header=header
     end
     'MLSO2016': begin
       img = readfits(fname, header, exten_no=exten_no, /silent)
-      w = where((img lt 0) or ~finite(img)) & if w[0] ne -1 then img[w]=0.0
-      img=remove_occult(img,P)
+      img = congrid(img,1024,1024)
+      ;w = where((img lt 0) or ~finite(img)) & if w[0] ne -1 then img[w]=0.0
+      ;img = rebin(rebin(img,512,512), 1024,1024) ; despiking COR1
+      img= float(remove_occult(img,P))
     end
     'COR1': begin
        img = readfits(fname, header, exten_no=exten_no, /silent)
@@ -67,6 +69,12 @@ FUNCTION OPEN_FILE, fname,  P, exten_no=exten_no, header=header
        img = congrid(img,512,512)
        w = where((img lt 0) or ~finite(img)) & if w[0] ne -1 then img[w]=0.0
        img=float(remove_occult(img,P))
+
+    end
+    'PSI_MLSO': begin
+      img = readfits(fname, header, exten_no=exten_no, /silent)
+      w = where((img lt 0) or ~finite(img)) & if w[0] ne -1 then img[w]=0.0
+      img=remove_occult(img,P)
 
     end
 
