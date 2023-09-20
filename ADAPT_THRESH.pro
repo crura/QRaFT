@@ -41,6 +41,7 @@ function ADAPT_THRESH, IMG_p_enh, k=k
   thresh_p = median(IMG_p_enh[w_p]) + k*stddev(IMG_p_enh[w_p])
   thresh_n = median(IMG_p_enh[w_n]) - k*stddev(IMG_p_enh[w_n])
 
+
   return, [[thresh_n, 0.0],[0.0, thresh_p]]
 
 End

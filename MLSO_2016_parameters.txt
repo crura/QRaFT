@@ -3,7 +3,7 @@
 # data_source: type of image to be processed (MLSO2014, MLSO2016, ECL1)
 # Xcenter, Ycenter: position of the Sun disk center, pixels
 # Rot_angle: initial rotation angle (used for inital image plane derotation)
-# Rs: radius of the Sun disk to be excluded fom processing, pixels 
+# Rs: radius of the Sun disk to be excluded fom processing, pixels
 # d_roi: distance (in pixels) in x and y directions from the disk center defining outer edges of the ROI
 # png_channel: PNG channel to be used if image data is in PNG format
 #
@@ -15,23 +15,23 @@
 # FEATURE FILTERING parameters:
 # L_min, L_max: allowed range of feature length (in discrete rectangular coordinates)
 # Phi_min, Phi_max: excluded range of polar angles (in radians), used to remove persistent MLSO artifacts
-# Alpha_min, Alpha_max: allowed range of average relative angles (in radians) measured wrt local radial direciton 
+# Alpha_min, Alpha_max: allowed range of average relative angles (in radians) measured wrt local radial direciton
 # Flux_rho_trend_min, Flux_rho_trend_max: allowed range of average fluxes along the feature computed using averaged radial trend
 #
 # FEATURE FITTING PARAMETERS:
 # blob_detect_n_segments: number of segments in each interpolated feature used to compute orientaiton angles
-# 
+#
 data_source = MLSO2016
 Xcenter = 513
 Ycenter = 513
-Rot_angle = 0.0 
-Rs = 205 
+Rot_angle = 0.0
+Rs = 205
 d_roi = 0
 blob_filt_min = 20
 blob_detect_min = 20
 blob_detect_thresh_pairs = 2
 blob_detect_thresholds = -25E-3 0 0 25E-3
-png_channel = 0    
+png_channel = 0
 L_min = 20
 L_max = 1000
 Phi_min = 2.77

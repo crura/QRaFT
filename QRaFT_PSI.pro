@@ -138,9 +138,9 @@ function compare_angles,  f_corona,  f_By, f_Bz, f_By_LOS, f_Bz_LOS, isplot=ispl
   ;Bz_LOS = congrid(LOS_integrated_Bz_2D,512,512)
 
   if keyword_set(manual) then begin
-    features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P, manual=manual)  ; using  'PSI' rescales MLSO image to match the B-field arrays
+    features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P, manual=manual,/save)  ; using  'PSI' rescales MLSO image to match the B-field arrays
   endif else begin
-    features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P)  ; using  'PSI' rescales MLSO image to match the B-field arrays
+    features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P,/save)  ; using  'PSI' rescales MLSO image to match the B-field arrays
   endelse
 
   ;features = process_corona(f_corona,data_source, thresh_k=thresh_k, IMG_enh=IMG_enh, P=P, /old, /silent)  ; using  'PSI' rescales MLSO image to match the B-field arrays
@@ -268,8 +268,7 @@ PRO script3, input_directory,  output_directory,  err_arr_MLSO,  err_arr_LOS_MLS
      f_err_sav = out_dir + repstr(file_basename(f_pb[i]), '_pB.fits', '.sav'); + '/'  + date_str+ '_' + detector_str +  '_errors.sav'
 
       res_MLSO = compare_angles( f_MLSO[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='MLSO2016', thresh_k = 1.5)  ;hist_x=hist_x, hist_y=hist_y
-      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI_MLSO', thresh_k = 1.1647, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
-
+      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI_MLSO', thresh_k = 1.1647)  ;hist_x=hist_x, hist_y=hist_y
 
 
       ;err_arr_MLSO = [err_arr_MLSO, res_MLSO.err]
@@ -443,8 +442,8 @@ PRO script4, input_directory, output_directory,  err_arr_COR1,  err_arr_LOS_COR1
 	 detector_str = strmid(file_basename(f_pB[i]),14,19)
      f_err_sav = out_dir + repstr(file_basename(f_pb[i]), '_pB.fits', '.sav'); + '/'  + date_str+ '_' + detector_str +  '_errors.sav'
 
-      res_COR1 = compare_angles( f_COR1[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='COR1', thresh_k = 1.5, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
-      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI', thresh_k = 1.1647, manual=manual)  ;hist_x=hist_x, hist_y=hist_y
+      res_COR1 = compare_angles( f_COR1[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='COR1', thresh_k = 1.5)  ;hist_x=hist_x, hist_y=hist_y
+      res_FORWARD = compare_angles( f_pB[i],  f_By[i], f_Bz[i], f_By_LOS[i], f_Bz_LOS[i], data_source='PSI', thresh_k = 1.1647)  ;hist_x=hist_x, hist_y=hist_y
 
       err_arr_COR1 = res_COR1.err
       err_signed_arr_COR1 = res_COR1.err_signed
