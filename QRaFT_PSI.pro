@@ -254,7 +254,7 @@ PRO script3, input_directory,  output_directory,  err_arr_MLSO,  err_arr_LOS_MLS
 
   for i=0, n_elements(dirs)-1 do begin
      print, dirs[i]
-     f_MLSO = file_search(dirs[i]+'*kcor*')
+     f_MLSO = file_search(dirs[i]+'*kcor*.fts')
      f_pB = file_search(dirs[i]+'*KCor__PSI_pB.fits')
      f_ne = file_search(dirs[i]+'*KCor__PSI_ne.fits')
      f_ne_LOS = file_search(dirs[i]+'*KCor__PSI_ne_LOS.fits')
