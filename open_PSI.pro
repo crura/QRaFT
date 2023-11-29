@@ -170,11 +170,10 @@ function features_vs_B, features, B1, B2, angle_err_avr=angle_err_avr, angle_err
   N_nodes_max = n_elements(features[0].angles_xx_r)
   angle_err = fltarr(N, N_nodes_max)
   angle_err_signed = fltarr(N, N_nodes_max)
-  angle_err_signed_test = fltarr(N, N_nodes_max)
 
   ; ensuring that the  B-vector is always outward
   sz = size(B1, /dim)
-  R1 = fltarr(sz[0],sz[1]) & R2 = R1 ; coordinate arrays
+  R1 = fltarr(sz[0],sz[1]) & R2 = R1 ; 2D coordinate arrays
   for x=0, sz[0]-1 do $
     for y=0, sz[1]-1 do begin
       R1[x,y] = x - sz[0]/2
@@ -185,35 +184,29 @@ function features_vs_B, features, B1, B2, angle_err_avr=angle_err_avr, angle_err
   if w[0] ne -1 then mask[w] = -1 ; 0-> -1
   B1_ = B1*mask & B2_ = B2*mask ; flipping the field where necessary
 
-  for i=0, N-1 do begin
+  for i=0, N-1 do begin ;iterating through all features
 
-    xx = features[i].angles_xx_r[0:features[i].n_nodes-1]
+    xx = features[i].angles_xx_r[0:features[i].n_nodes-1] ; x and y coordinates of points in ith feature
     yy = features[i].angles_yy_r[0:features[i].n_nodes-1]
 
     for k=0, features[i].n_nodes-2 do begin
 
-	  v1 = [features[i].xx_r[k+1]-features[i].xx_r[k], features[i].yy_r[k+1]-features[i].yy_r[k] ]
-	  v2 = [B1[xx[k], yy[k]], B2[xx[k], yy[k]]  ]
-	  v1_mag = sqrt(total(v1^2))
-	  v2_mag = sqrt(total(v2^2))
+	    v1 = [features[i].xx_r[k+1]-features[i].xx_r[k], features[i].yy_r[k+1]-features[i].yy_r[k] ]
+	    v2 = [B1[xx[k], yy[k]], B2[xx[k], yy[k]]  ]
+	    v1_mag = sqrt(total(v1^2))
+	    v2_mag = sqrt(total(v2^2))
 
-	  d_angle = acos(total(v1*v2)/(v1_mag*v2_mag))
-	  if d_angle gt !Pi/2 then d_angle =  !Pi - d_angle
-	  angle_err[i,k] = d_angle
+	    d_angle = acos(total(v1*v2)/(v1_mag*v2_mag))
+	    if d_angle gt !Pi/2 then d_angle =  !Pi - d_angle
+	    angle_err[i,k] = d_angle
 
-	  v2_ = [B1_[xx[k], yy[k]], B2_[xx[k], yy[k]]  ] ; outward B
-	  v2_mag_ = sqrt(total(v2_^2))
-	  d_angle_signed = asin( ( v1[0]*v2_[1] - v1[1]*v2_[0]  ) / (v1_mag*v2_mag_)  )
-	  d_angle_signed_test = atan( v1[0]*v2_[1] - v1[1]*v2_[0], v1[0]*v2_[0] + v1[1]*v2_[1] );atan(v2_[1], v2_[0]) - atan(v1[1], v1[0])
-	  angle_err_signed[i,k] = d_angle_signed
-	  angle_err_signed_test[i,k] = d_angle_signed_test
+	    v2_ = [B1_[xx[k], yy[k]], B2_[xx[k], yy[k]]  ] ; outward B
+	    v2_mag_ = sqrt(total(v2_^2))
+	    d_angle_signed = asin( ( v1[0]*v2_[1] - v1[1]*v2_[0]  ) / (v1_mag*v2_mag_)  )
+	    angle_err_signed[i,k] = d_angle_signed
 
-	  ;x = xx[k]
-      ;y = yy[k]
-      ;B_angle = atan2(B2[x,y], B1[x,y])
-      ;F_angle = features[i].angles[k]
-      ;angle_err[i,k] = F_angle - B_angle
- 	endfor
+ 	  endfor
+ 	  
   endfor
 
   angle_err_avr = fltarr(N)
@@ -229,7 +222,7 @@ function features_vs_B, features, B1, B2, angle_err_avr=angle_err_avr, angle_err
   ;w_ = where(B eq 0) &  B[w_]=mn & B1[w_] = mn & B2[w_] = mn ; replace 0s with mn (not need to do that for B1 and B2)
   ;vel, B1/B, B2/B  ; plot normalized B vectors
 
-  return, angle_err;{angle_err, angle_err_signed, angle_err_signed_test}
+  return, angle_err
 
 End
 
