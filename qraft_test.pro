@@ -21,15 +21,33 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   
   if key eq 2 then begin
     ; COR1
-    fname = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\COR1\2010_Images\A\20100501\20100501_174500_0P4c1A.fts"
-    ;fname = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\COR1\Carrington_2066_2091_2098_Images\C_2066_512_512\A_512_512\20080228_rep_avg.fts"   
-    rho_min = 100
+    if n_elements(fname) eq 0 then begin
+      dir = "/Users/crura/Desktop/Research/github/Test_Suite/Image-Coalignment/QRaFT/3.0_PSI_Tests"
+      fname = dir + "/COR1/2017_09_11_rep_med.fts" 
+      fname_B1 = dir + "/__2017_09_11__COR1__PSI_By.fits"  
+      fname_B2 = dir + "/__2017_09_11__COR1__PSI_Bz.fits"
+      rho_min = 110.0
+    endif
+  endif
+  
+  if key eq 3 then begin
+    ; PSI ne
+    ;fname = "c:\Users\vadim\Documents\SCIENCE PROJECTS\N Arge\PSI\PSI_central_plane\__2017_08_29__COR1__PSI_ne.fits"
+    if n_elements(fname) eq 0 then begin
+      dir = "/Users/crura/Desktop/Research/github/Test_Suite/Image-Coalignment/QRaFT/3.0_PSI_Tests"
+      fname = dir + "/__2017_09_11__KCor__PSI_ne_LOS.fits"
+      fname_B1 = dir + "/__2017_09_11__KCor__PSI_By.fits"
+      fname_B2 = dir + "/__2017_09_11__KCor__PSI__PSI_Bz.fits"
+      rho_min = 220.0
+    endif
+    ;rho_min = 90.0
   endif
 
   ;-------- opening file -------------
     
   IMG_orig = readfits(fname, header, exten_no=exten_no)
   sz = size(IMG_orig, /dim) & Nx = sz[0] & Ny = sz[1]
+  IMG_orig = congrid(IMG_orig, 512, 512) & IMG_orig = congrid(IMG_orig, Nx, Ny)
 
   ;-------- image processing constants ----------------
 
@@ -37,17 +55,21 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   ;   
   XYCenter = [Nx, Ny] / 2.0
   d_phi = 2*0.00872665
-  d_rho = 2*1.0
+  d_rho = 2*1.0 ; 2*1.0
   rot_angle = 2.5 
-  phi_shift = 2.0 
-  smooth_xy = [5,5]
-  smooth_rho_phi = [3,3]
+  phi_shift = 2.0 ; 2.0 
+
+  smooth_xy = [5,5] ;[5,5]
+  smooth_phi_rho = [3,3] ;[3,3] ;[5,5]
   detr_phi = 30 ;10
+
   rho_range = [rho_min, min([Nx/2, Ny/2])]/d_rho
+  n_rho = 20 ; number of rho_min levels used for tracing 
+  
+  p_range = [0.90, 0.99]
+  n_p = 10  ; number of probability levels
+
   n_nodes_min = 10
-  
-  
- 
   ;-------- IMAGE PREPROCESSING -------------
 
   ; -------------------------------------------
@@ -82,10 +104,18 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   IMG_orig_p_ = patch_image_holes(IMG_orig_p, count=count) ; help, count
   
   ; Smoothing
-  IMG_orig_p_ = smooth(IMG_orig_p_, smooth_rho_phi)
+  IMG_orig_p_ = smooth(IMG_orig_p_, smooth_phi_rho)
+  
+  ; 2-step 2nd order differentiation with smoothing after 1st derivative
+  
+  ;IMG_d1_phi_ = shift(IMG_orig_p_, [phi_shift,0]) - IMG_orig_p_
+  ;IMG_d1_phi_ = smooth(IMG_d1_phi_, smooth_phi_rho)
+  ;IMG_d2_phi_ = shift(IMG_d1_phi_, [phi_shift,0]) - IMG_d1_phi_
   
   ; 2nd phi-derivative in polar coordinates
   IMG_d2_phi_ = shift(IMG_orig_p_, [phi_shift,0]) + shift(IMG_orig_p_, [-phi_shift,0]) - 2*IMG_orig_p_
+  
+  
   ; absolute value:
   IMG_d2_phi_enh = abs(IMG_d2_phi_)
     
@@ -101,13 +131,16 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   ; -------------------------------------------
   ;  
   ; Array of percintile thresholds:
+  ;p_arr = findgen(n_p)*(p_range[1]-p_range[0])/(n_p-1 - 0) + p_range[0]
+  ;p_arr = [0.90, 0.92, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]
   p_arr = [0.90, 0.92, 0.95, 0.97, 0.99]
-  ;p_arr = [0.86, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98]
 
   ; Array of min. rho levels:
+
+  ;rho_min_arr = 1 + fix(n_elements(IMG_d2_phi_enh[0,*])*(4.0/5.0)*findgen(n_rho)/float(n_rho) )  
   rho_min_arr = [1, 2, 5, 10, 15, 20, 25]
   ;rho_min_arr = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30]
-  
+
   ; blob detection
   IMG_lbl_arr = detect_blobs(IMG_d2_phi_enh, p_arr, rho_min_arr, 5, blob_stat=blob_stat, blob_indices=blob_indices)
   
@@ -133,14 +166,9 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
       ;-------------------------------------
       ; saving main resutls:
       fname_save = fname+'.sav'      
-      w = where((angle_err ne 0) and finite(angle_err) )
-      angle_err_nonzero = angle_err[w]
-      
-      w_signed = where((angle_err_signed ne 0) and finite(angle_err_signed) )
-      angle_err_signed_nonzero = angle_err_signed[w_signed]
-      
+      ;w = where((angle_err ne 0) and finite(angle_err) )
       ;w_ = where((angle_err_signed ne 0) and finite(angle_err_signed))            
-      save, filename = fname_save, features, angle_err, angle_err_nonzero, angle_err_signed, angle_err_signed_nonzero, IMG_d2_phi_r, blob_stat, blob_indices
+      save, filename = fname_save, features, angle_err, angle_err_signed, IMG_d2_phi_r, blob_stat, blob_indices
       ;-------------------------------------
       
     endif
@@ -210,7 +238,8 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
     setcolors
     plot_B_lines, B1, B2, XYCenter=XYCenter, rho_min=rho_min
     oplot_features, features, XYCenter
-
+    plots, [0], [0], psym=4, thick=2
+    
     w = where((angle_err ne 0) and finite(angle_err) )
     w_ = where((angle_err_signed ne 0) and finite(angle_err_signed))
     
@@ -219,6 +248,8 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
     plot, hx, hy, title = 'Mean='+str(mean(angle_err[w]*180/!Pi))+' Median='+str(median(angle_err[w]*180/!Pi)), thick=4, /xstyle, xrange=[-45,45]
     oplot, hx_signed, hy_signed, thick=2
     oplot, [0,0], !y.crange, lines=2
+    
+
 
     !P.multi = 0
   endif
