@@ -131,9 +131,8 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   ; -------------------------------------------
   ;  
   ; Array of percintile thresholds:
-  ;p_arr = findgen(n_p)*(p_range[1]-p_range[0])/(n_p-1 - 0) + p_range[0]
+  p_arr = findgen(n_p)*(p_range[1]-p_range[0])/(n_p-1 - 0) + p_range[0]
   ;p_arr = [0.90, 0.92, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]
-  p_arr = [0.90, 0.92, 0.95, 0.97, 0.99]
 
   ; Array of min. rho levels:
 
