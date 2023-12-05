@@ -59,9 +59,9 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   rot_angle = 2.5 
   phi_shift = 2.0 ; 2.0 
 
-  smooth_xy = [5,5] ;[5,5]
-  smooth_phi_rho = [3,3] ;[3,3] ;[5,5]
-  detr_phi = 30 ;10
+  smooth_xy = 12 ;[5,5]
+  smooth_phi_rho = [5,8] ;[3,3]
+  detr_phi = 10 ;10
 
   rho_range = [rho_min, min([Nx/2, Ny/2])]/d_rho
   n_rho = 20 ; number of rho_min levels used for tracing 
@@ -70,14 +70,16 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   n_p = 10  ; number of probability levels
 
   n_nodes_min = 10
+
   ;-------- IMAGE PREPROCESSING -------------
 
   ; -------------------------------------------
   ; 1. Initial processing in rect. coordinates
   ; -------------------------------------------
   ; 
-  ; smoothing: 
-  IMG_orig = smooth(IMG_orig, smooth_xy)
+  ; initial smoothing: 
+  ;IMG_orig = smooth(IMG_orig, smooth_xy)
+  IMG_orig = median(IMG_orig, smooth_xy)
   ; detrending:  
   IMG_orig = radial_detrending(abs(IMG_orig), XYCenter)
   ; removing near-Sun region:
@@ -89,7 +91,7 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   Y = findgen(Ny) - XYCenter[1]
   
   ; -------------------------------------------
-  ; 2. Main procesing in polar coordinates
+  ; 2. Main processing in polar coordinates
   ; -------------------------------------------
   
   ; Rectang. to polar transform
@@ -136,8 +138,8 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
 
   ; Array of min. rho levels:
 
-  ;rho_min_arr = 1 + fix(n_elements(IMG_d2_phi_enh[0,*])*(4.0/5.0)*findgen(n_rho)/float(n_rho) )  
-  rho_min_arr = [1, 2, 5, 10, 15, 20, 25]
+  rho_min_arr = 1 + fix(n_elements(IMG_d2_phi_enh[0,*])*(4.0/5.0)*findgen(n_rho)/float(n_rho) )  
+  ;rho_min_arr = [1, 2, 5, 10, 15, 20, 25]
   ;rho_min_arr = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30]
 
   ; blob detection
