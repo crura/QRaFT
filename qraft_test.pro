@@ -54,22 +54,22 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
   ; Tunable parameters:
   ;   
   XYCenter = [Nx, Ny] / 2.0
-  d_phi = 2*0.00872665
-  d_rho = 2*1.0 ; 2*1.0
-  rot_angle = 2.5 
-  phi_shift = 2.0 ; 2.0 
+  d_phi = 2*0.00872665 ;  bin aize in azimuthal coordinate
+  d_rho = 2*1.0 ; 2*1.0 ;  bin size in radial coordindate
+  rot_angle = 2.5 ; 
+  phi_shift = 2.0 ;* (in units of d_phi bins) can definitely play with this
 
-  smooth_xy = 12 ;[5,5]
-  smooth_phi_rho = [5,8] ;[3,3]
-  detr_phi = 10 ;10
+  smooth_xy = 10 ;*[5,5] important, noise reduction (greate the number greater the mask code uses to redue the noise) (trade off between noise reduction and sharpness)
+  smooth_phi_rho = [5,8] ;[3,3] different bin sizes for noise reduction smoothing along phi bins and rho bins (number of bins in each directions)
+  detr_phi = 10 ;*can play arpnd with this detrended phi, detrends the image in the azimuthal direction to stabilize brightness (such as coronl hole vs active region), this parameter controls the bin size for this detrending
 
-  rho_range = [rho_min, min([Nx/2, Ny/2])]/d_rho
-  n_rho = 20 ; number of rho_min levels used for tracing 
+  rho_range = [rho_min, min([Nx/2, Ny/2])]/d_rho ; play with this
+  n_rho = 20 ; number of rho_min levels used for tracing, number of virtual occulting disks used to ask 
   
-  p_range = [0.90, 0.99]
-  n_p = 10  ; number of probability levels
+  p_range = [0.90, 0.99] ;** range of the probabilities onf which calculating percentile thresholds, important parameter
+  n_p = 10  ;* number of probability levels, these many sets of thresholds are applies within p_range
 
-  n_nodes_min = 10
+  n_nodes_min = 10 ; minor parameter, minimum number of pixels in the features to be inlcuded in final output
 
   ;-------- IMAGE PREPROCESSING -------------
 
@@ -156,12 +156,17 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
       
       B1 = readfits(fname_B1) & B2 = readfits(fname_B2)
       
-      features = blob_stat_to_features(blob_stat, d_phi, d_rho, rho_min, XYCenter)
+      features = blob_stat_to_features(blob_stat, d_phi, d_rho, rho_min, XYCenter, abs(IMG_orig))
        
       ; removing short features
       w = where(features[*].n_nodes gt n_nodes_min)
       features = features[w]
-        
+      ; do only for data
+      ; removing features with low intensity
+      intensity_removal_coef = 0.4
+      w = where(features.intensity gt intensity_removal_coef*mean(abs(IMG_orig[where(IMG_orig gt 0)])))
+
+      features = features[w]
       angle_err = features_vs_B(features, B1, B2, angle_err_avr=angle_err_avr, angle_err_sd=angle_err_sd, angle_err_signed=angle_err_signed)
 
       ;-------------------------------------
@@ -169,7 +174,7 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
       fname_save = fname+'.sav'      
       ;w = where((angle_err ne 0) and finite(angle_err) )
       ;w_ = where((angle_err_signed ne 0) and finite(angle_err_signed))            
-      save, filename = fname_save, features, angle_err, angle_err_signed, IMG_d2_phi_r, blob_stat, blob_indices
+      save, filename = fname_save, features, angle_err, angle_err_signed, IMG_d2_phi_r, XYCenter, d_phi, d_rho, rot_angle, phi_shift, smooth_xy, smooth_phi_rho, detr_phi, rho_range, n_rho, p_range, n_p, n_nodes_min
       ;-------------------------------------
       
     endif
