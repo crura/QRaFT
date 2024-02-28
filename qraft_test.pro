@@ -174,7 +174,7 @@ PRO QRaFT_TEST, key, fname, fname_B1, fname_B2, rho_min
       fname_save = fname+'.sav'      
       ;w = where((angle_err ne 0) and finite(angle_err) )
       ;w_ = where((angle_err_signed ne 0) and finite(angle_err_signed))            
-      save, filename = fname_save, features, angle_err, angle_err_signed, IMG_d2_phi_r, XYCenter, d_phi, d_rho, rot_angle, phi_shift, smooth_xy, smooth_phi_rho, detr_phi, rho_range, n_rho, p_range, n_p, n_nodes_min
+      save, filename = fname_save, features, angle_err, angle_err_signed, IMG_d2_phi_r, XYCenter, d_phi, d_rho, rot_angle, phi_shift, smooth_xy, smooth_phi_rho, detr_phi, rho_range, n_rho, p_range, n_p, n_nodes_min, intensity_removal_coef
       ;-------------------------------------
       
     endif
